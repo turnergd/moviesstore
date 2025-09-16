@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-crown"></i> My Subscription Level
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Current Subscription Level -->
+                    <div class="text-center mb-4">
+                        <div class="subscription-badge subscription-{{ template_data.subscription_level|lower }}">
+                            <h2 class="mb-0">{{ template_data.subscription_level }}</h2>
+                        </div>
+                        <p class="text-muted mt-2">Your current subscription level</p>
+                    </div>
+
+                    <!-- Spending Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h4 class="text-primary">${{ template_data.total_spent }}</h4>
+                                    <p class="mb-0">Total Spent</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h4 class="text-success">{{ template_data.orders_count }}</h4>
+                                    <p class="mb-0">Orders Placed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress to Next Level -->
+                    {% if template_data.next_level %}
+                    <div class="mb-4">
+                        <h5>Progress to {{ template_data.next_level }} Level</h5>
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" 
+                                 style="width: {{ template_data.progress_to_next }}%"
+                                 aria-valuenow="{{ template_data.progress_to_next }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ template_data.progress_to_next|floatformat:0 }}%
+                            </div>
+                        </div>
+                        <p class="text-muted">
+                            Spend ${{ template_data.amount_needed|floatformat:2 }} more to reach {{ template_data.next_level }} level
+                        </p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success text-center">
+                        <h5><i class="fas fa-trophy"></i> Congratulations!</h5>
+                        <p class="mb-0">You've reached the highest subscription level!</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Subscription Benefits -->
+                    <div class="mt-4">
+                        <h5>Subscription Benefits</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="benefit-card">
+                                    <h6 class="text-primary">Basic</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success"></i> Access to movie catalog</li>
+                                        <li><i class="fas fa-check text-success"></i> Basic customer support</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="benefit-card">
+                                    <h6 class="text-warning">Medium</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success"></i> All Basic benefits</li>
+                                        <li><i class="fas fa-check text-success"></i> Priority customer support</li>
+                                        <li><i class="fas fa-check text-success"></i> Early access to new releases</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="benefit-card">
+                                    <h6 class="text-danger">Premium</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success"></i> All Medium benefits</li>
+                                        <li><i class="fas fa-check text-success"></i> VIP customer support</li>
+                                        <li><i class="fas fa-check text-success"></i> Exclusive movie content</li>
+                                        <li><i class="fas fa-check text-success"></i> Special discounts</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-4">
+                        <a href="{% url 'movies.index' %}" class="btn btn-primary">
+                            <i class="fas fa-film"></i> Browse Movies
+                        </a>
+                        <a href="{% url 'accounts.orders' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-shopping-bag"></i> View Orders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.subscription-badge {
+    display: inline-block;
+    padding: 20px 40px;
+    border-radius: 15px;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.subscription-basic {
+    background: linear-gradient(135deg, #6c757d, #495057);
+}
+
+.subscription-medium {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+}
+
+.subscription-premium {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.benefit-card {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    height: 100%;
+    border-left: 4px solid #dee2e6;
+}
+
+.benefit-card h6 {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.benefit-card ul li {
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    0% { background-position: 1rem 0; }
+    100% { background-position: 0 0; }
+}
+</style>
+
+{% endblock content %}

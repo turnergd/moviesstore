@@ -36,6 +36,73 @@
     max-height: 200px;
   }
   .img-card-400 {
-    width: fit-content;
-    max-height: 400px;
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    max-height: 600px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .movie-image-container {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin: 0 auto;
+    display: inline-block;
+  }
+  
+  @media (max-width: 768px) {
+    .img-card-400 {
+      max-width: 100%;
+      max-height: 400px;
+    }
+  }
+  
+  /* Subscription Level Styles */
+  .subscription-badge {
+    display: inline-block;
+    padding: 20px 40px;
+    border-radius: 15px;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .subscription-basic {
+    background: linear-gradient(135deg, #6c757d, #495057);
+  }
+
+  .subscription-medium {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+  }
+
+  .subscription-premium {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+  }
+
+  .benefit-card {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    height: 100%;
+    border-left: 4px solid #dee2e6;
+    transition: transform 0.2s ease;
+  }
+
+  .benefit-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .benefit-card h6 {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .benefit-card ul li {
+    margin-bottom: 5px;
+    font-size: 0.9em;
   }

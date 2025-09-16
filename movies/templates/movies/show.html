@@ -89,8 +89,12 @@
 
       </div>
       <div class="col-md-6 mx-auto mb-3 text-center">
-        <img src="{{ template_data.movie.image.url }}"
-          class="rounded img-card-400" />
+        <div class="movie-image-container">
+          <img src="{{ template_data.movie.image.url }}"
+            class="img-card-400" 
+            alt="{{ template_data.movie.name }}"
+            loading="lazy" />
+        </div>
       </div>
     </div>
   </div>
