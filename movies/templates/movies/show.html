@@ -10,16 +10,86 @@
 
         <!-- Star Rating Component -->
         <div class="star-rating-container">
-          <span class="rating-label">Rate this movie:</span>
-          <div class="star-rating" id="starRating">
-            <span class="star" data-rating="1">☆</span>
-            <span class="star" data-rating="2">☆</span>
-            <span class="star" data-rating="3">☆</span>
-            <span class="star" data-rating="4">☆</span>
-            <span class="star" data-rating="5">☆</span>
+          <div class="rating-info mb-3">
+            <h5>Movie Rating</h5>
+            <div class="average-rating">
+              <span class="rating-label">Average Rating:</span>
+              <div class="stars-display">
+                {% for i in "12345" %}
+                  {% if template_data.avg_rating >= i|add:0 %}
+                    <span class="star-display filled">★</span>
+                  {% else %}
+                    <span class="star-display">☆</span>
+                  {% endif %}
+                {% endfor %}
+                <span class="rating-text">{{ template_data.avg_rating }}/5 ({{ template_data.total_ratings }} rating{{ template_data.total_ratings|pluralize }})</span>
+              </div>
+            </div>
+            {% if template_data.user_rating %}
+              <div class="user-rating">
+                <span class="rating-label">Your Rating:</span>
+                <div class="stars-display">
+                  {% for i in "12345" %}
+                    {% if template_data.user_rating.rating >= i|add:0 %}
+                      <span class="star-display filled">★</span>
+                    {% else %}
+                      <span class="star-display">☆</span>
+                    {% endif %}
+                  {% endfor %}
+                  <span class="rating-text">{{ template_data.user_rating.rating }}/5</span>
+                </div>
+              </div>
+            {% endif %}
           </div>
-          <span class="rating-value" id="ratingValue">No rating selected</span>
+          
+          {% if user.is_authenticated %}
+            <form method="post" action="{% url 'movies.submit_rating' id=template_data.movie.id %}" id="ratingForm">
+              {% csrf_token %}
+              <div class="rating-input">
+                <span class="rating-label">Rate this movie:</span>
+                <div class="star-rating" id="starRating">
+                  <span class="star" data-rating="1">☆</span>
+                  <span class="star" data-rating="2">☆</span>
+                  <span class="star" data-rating="3">☆</span>
+                  <span class="star" data-rating="4">☆</span>
+                  <span class="star" data-rating="5">☆</span>
+                </div>
+                <span class="rating-value" id="ratingValue">No rating selected</span>
+                <input type="hidden" name="rating" id="ratingInput" value="">
+                <button type="submit" class="btn btn-primary btn-sm mt-2" id="submitRating" disabled>Submit Rating</button>
+              </div>
+            </form>
+          {% else %}
+            <p class="text-muted">Please <a href="{% url 'accounts.login' %}">log in</a> to rate this movie.</p>
+          {% endif %}
         </div>
+
+        <!-- User Ratings List -->
+        {% if template_data.all_ratings %}
+        <div class="user-ratings-list mt-4">
+          <h5>User Ratings</h5>
+          <div class="ratings-container">
+            {% for rating in template_data.all_ratings %}
+            <div class="rating-item">
+              <div class="rating-user-info">
+                <span class="rating-username">{{ rating.user.username }}</span>
+                <span class="rating-date">{{ rating.date|date:"M d, Y" }}</span>
+              </div>
+              <div class="rating-stars-display">
+                {% for i in "12345" %}
+                  {% if rating.rating >= i|add:0 %}
+                    <span class="star-display filled">★</span>
+                  {% else %}
+                    <span class="star-display">☆</span>
+                  {% endif %}
+                {% endfor %}
+                <span class="rating-value-text">{{ rating.rating }}/5</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
 
         <p><b>Description:</b> {{template_data.movie.description }}</p>
         <p><b>Price:</b> ${{template_data.movie.price }}</p>
@@ -120,6 +190,9 @@
   const starRating = document.getElementById('starRating');
   const stars = starRating.querySelectorAll('.star');
   const ratingValue = document.getElementById('ratingValue');
+  const ratingInput = document.getElementById('ratingInput');
+  const submitButton = document.getElementById('submitRating');
+  const ratingForm = document.getElementById('ratingForm');
 
   let selectedRating = 0;
   let hoverRating = 0;
@@ -150,8 +223,12 @@
   function updateRatingText(rating) {
     if (rating > 0) {
       ratingValue.textContent = `${rating} out of 5 stars`;
+      ratingInput.value = rating;
+      submitButton.disabled = false;
     } else {
       ratingValue.textContent = 'No rating selected';
+      ratingInput.value = '';
+      submitButton.disabled = true;
     }
   }
 
@@ -176,6 +253,17 @@
     hoverRating = 0;
     updateStars(selectedRating, false);
   });
+
+  // Form submission validation
+  if (ratingForm) {
+    ratingForm.addEventListener('submit', function(e) {
+      if (selectedRating === 0) {
+        e.preventDefault();
+        alert('Please select a rating before submitting.');
+        return false;
+      }
+    });
+  }
 })();
 </script>
 
