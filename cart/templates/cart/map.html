@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .region-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #007bff;
+    }
+    .trending-movie {
+        background: white;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border: 1px solid #dee2e6;
+    }
+    .location-selector {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .user-purchases {
+        background: #fff3cd;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+    }
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="p-3">
+    <div class="container">
+        <div class="row mt-3">
+            <div class="col mx-auto mb-3">
+                <h2><i class="fas fa-map-marked-alt"></i> Local Popularity Map</h2>
+                <p class="text-muted">Discover trending movies in different regions around the world</p>
+                <hr />
+            </div>
+        </div>
+
+        <!-- Location Selector -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="location-selector">
+                    <h5><i class="fas fa-location-arrow"></i> Set Your Location</h5>
+                    <p class="text-muted small">Choose your region to see personalized recommendations and track regional trends</p>
+                    <form id="locationForm" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-4">
+                            <label for="regionSelect" class="form-label">Select Region:</label>
+                            <select class="form-select" id="regionSelect" name="region">
+                                <option value="North America">North America</option>
+                                <option value="Europe">Europe</option>
+                                <option value="Asia">Asia</option>
+                                <option value="South America">South America</option>
+                                <option value="Africa">Africa</option>
+                                <option value="Oceania">Oceania</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary d-block">
+                                <i class="fas fa-check"></i> Set Location
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="locationStatus" class="alert alert-info mb-0 d-none">
+                                <small><i class="fas fa-info-circle"></i> <span id="statusText"></span></small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- Regional Data Display -->
+        <div class="row">
+            <div class="col-md-6">
+                <h4><i class="fas fa-chart-line"></i> Regional Trending Movies</h4>
+                <p class="text-muted small">Click on a region marker to see trending movies</p>
+                <div id="regionalData">
+                    <p class="text-center text-muted">Select a region on the map to view trending movies</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h4><i class="fas fa-user-check"></i> Your Recent Purchases</h4>
+                <div class="user-purchases">
+                    {% if template_data.user_purchases %}
+                        {% for purchase in template_data.user_purchases %}
+                        <div class="trending-movie">
+                            <strong>{{ purchase.name }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                Quantity: {{ purchase.quantity }} | 
+                                Date: {{ purchase.date }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">You haven't made any purchases yet. Start shopping to see your history here!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize the map
+    const map = L.map('map').setView([20, 0], 2);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+    }).addTo(map);
+
+    // Store markers for reference
+    const markers = {};
+
+    // Custom icon for markers
+    const trendingIcon = L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+
+    // Function to display regional data
+    function displayRegionalData(regionName, movies) {
+        const regionalDataDiv = document.getElementById('regionalData');
+        
+        if (!movies || movies.length === 0) {
+            regionalDataDiv.innerHTML = `
+                <div class="region-card">
+                    <h5>${regionName}</h5>
+                    <p class="text-muted">No trending data available for this region yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = `
+            <div class="region-card">
+                <h5><i class="fas fa-fire"></i> ${regionName}</h5>
+                <p class="text-muted small">Top trending movies based on purchases</p>
+        `;
+
+        movies.forEach((movie, index) => {
+            html += `
+                <div class="trending-movie">
+                    <strong>#${index + 1} ${movie.movie_name}</strong>
+                    <br>
+                    <small class="text-muted">
+                        <i class="fas fa-shopping-cart"></i> ${movie.total_quantity} purchases | 
+                        <i class="fas fa-users"></i> ${movie.purchase_count} orders
+                    </small>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        regionalDataDiv.innerHTML = html;
+    }
+
+    // Fetch and display map data
+    fetch('/cart/api/map-data/')
+        .then(response => response.json())
+        .then(data => {
+            data.regions.forEach(region => {
+                const marker = L.marker([region.latitude, region.longitude], {
+                    icon: trendingIcon,
+                    title: region.region
+                }).addTo(map);
+
+                const movieCount = region.trending_movies.length;
+                const popupContent = `
+                    <div style="min-width: 200px;">
+                        <h6><strong>${region.region}</strong></h6>
+                        <p class="mb-1"><small>${movieCount} trending movie${movieCount !== 1 ? 's' : ''}</small></p>
+                        <button class="btn btn-sm btn-primary" onclick="showRegionDetails('${region.region}')">
+                            View Details
+                        </button>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                markers[region.region] = {
+                    marker: marker,
+                    data: region
+                };
+
+                // Click handler to display regional data
+                marker.on('click', function() {
+                    displayRegionalData(region.region, region.trending_movies);
+                });
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching map data:', error);
+        });
+
+    // Function to show region details (called from popup)
+    window.showRegionDetails = function(regionName) {
+        if (markers[regionName]) {
+            displayRegionalData(regionName, markers[regionName].data.trending_movies);
+            // Scroll to the regional data section
+            document.getElementById('regionalData').scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    // Handle location form submission
+    document.getElementById('locationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const region = formData.get('region');
+
+        fetch('/cart/set-location/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const statusDiv = document.getElementById('locationStatus');
+                const statusText = document.getElementById('statusText');
+                statusText.textContent = `Location set to ${data.region}`;
+                statusDiv.classList.remove('d-none', 'alert-danger');
+                statusDiv.classList.add('alert-success');
+                
+                // Focus on the selected region
+                if (markers[region]) {
+                    const regionData = markers[region].data;
+                    map.setView([regionData.latitude, regionData.longitude], 4);
+                    markers[region].marker.openPopup();
+                    displayRegionalData(region, regionData.trending_movies);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error setting location:', error);
+            const statusDiv = document.getElementById('locationStatus');
+            const statusText = document.getElementById('statusText');
+            statusText.textContent = 'Failed to set location';
+            statusDiv.classList.remove('d-none', 'alert-success');
+            statusDiv.classList.add('alert-danger');
+        });
+    });
+</script>
+
+{% endblock content %}
+
