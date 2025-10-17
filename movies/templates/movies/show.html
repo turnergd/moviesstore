@@ -7,6 +7,20 @@
       <div class="col-md-6 mx-auto mb-3">
         <h2>{{ template_data.movie.name }}</h2>
         <hr />
+
+        <!-- Star Rating Component -->
+        <div class="star-rating-container">
+          <span class="rating-label">Rate this movie:</span>
+          <div class="star-rating" id="starRating">
+            <span class="star" data-rating="1">☆</span>
+            <span class="star" data-rating="2">☆</span>
+            <span class="star" data-rating="3">☆</span>
+            <span class="star" data-rating="4">☆</span>
+            <span class="star" data-rating="5">☆</span>
+          </div>
+          <span class="rating-value" id="ratingValue">No rating selected</span>
+        </div>
+
         <p><b>Description:</b> {{template_data.movie.description }}</p>
         <p><b>Price:</b> ${{template_data.movie.price }}</p>
         <p class="card-text">
@@ -99,4 +113,70 @@
     </div>
   </div>
 </div>
+
+<script>
+// Star Rating Component JavaScript
+(function() {
+  const starRating = document.getElementById('starRating');
+  const stars = starRating.querySelectorAll('.star');
+  const ratingValue = document.getElementById('ratingValue');
+
+  let selectedRating = 0;
+  let hoverRating = 0;
+
+  // Function to update star display
+  function updateStars(rating, isHover = false) {
+    stars.forEach((star, index) => {
+      const starValue = index + 1;
+
+      // Remove all classes first
+      star.classList.remove('filled', 'hover');
+
+      // Update star symbol and classes based on rating
+      if (starValue <= rating) {
+        star.textContent = '★';
+        if (isHover) {
+          star.classList.add('hover');
+        } else {
+          star.classList.add('filled');
+        }
+      } else {
+        star.textContent = '☆';
+      }
+    });
+  }
+
+  // Function to update rating value text
+  function updateRatingText(rating) {
+    if (rating > 0) {
+      ratingValue.textContent = `${rating} out of 5 stars`;
+    } else {
+      ratingValue.textContent = 'No rating selected';
+    }
+  }
+
+  // Add click event to each star
+  stars.forEach((star) => {
+    // Click event - set the rating
+    star.addEventListener('click', function() {
+      selectedRating = parseInt(this.getAttribute('data-rating'));
+      updateStars(selectedRating, false);
+      updateRatingText(selectedRating);
+    });
+
+    // Mouseover event - show hover state
+    star.addEventListener('mouseenter', function() {
+      hoverRating = parseInt(this.getAttribute('data-rating'));
+      updateStars(hoverRating, true);
+    });
+  });
+
+  // Mouseleave event on the container - reset to selected rating
+  starRating.addEventListener('mouseleave', function() {
+    hoverRating = 0;
+    updateStars(selectedRating, false);
+  });
+})();
+</script>
+
 {% endblock content %}

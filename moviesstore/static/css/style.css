@@ -106,3 +106,50 @@
     margin-bottom: 5px;
     font-size: 0.9em;
   }
+
+  /* Star Rating Component */
+  .star-rating-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+  }
+
+  .star-rating {
+    display: inline-flex;
+    gap: 5px;
+    cursor: pointer;
+  }
+
+  .star {
+    font-size: 32px;
+    color: #ddd;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .star.filled {
+    color: #ffc107;
+  }
+
+  .star.hover {
+    color: #ffdb4d;
+    transform: scale(1.1);
+  }
+
+  .star:hover {
+    transform: scale(1.15);
+  }
+
+  .rating-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+  }
+
+  .rating-value {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+  }
